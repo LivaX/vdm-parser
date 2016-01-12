@@ -19,14 +19,17 @@ class ParseCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
        
+        $output->writeln("Let's parse some data from viedemerde.fr");
         $logger = $this->getContainer()->get('logger');
         
+       
         //on appelle notre service
-        //$vdm = $this->getContainer()->get('vdm')->getLatestPosts();
+        $vdmResult = $this->getContainer()->get('vdm.parser')->getLatestPosts();
         
+        // $output->writeln(var_dump($vdmResult));
         //on écrit le résultat
         //$output->writeln("post count".array($vdm));
-        $output->writeln("Hello World!");
+       
     }
 }
 
