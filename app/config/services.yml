@@ -6,6 +6,4 @@ parameters:
 services:
     vdm.parser:
         class: AppBundle\Manager\VdmPostManager
-        arguments: [@service_container,"%vdm.parser.limit%"]
-       # calls:
-        #    - [ setContainer,[ @service_container ] ]
+        arguments: [@service_container,@doctrine.orm.entity_manager,"%vdm.parser.limit%"]

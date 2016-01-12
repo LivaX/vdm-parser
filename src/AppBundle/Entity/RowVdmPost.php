@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\AppBundle\Entity;
+namespace AppBundle\Entity;
 
 /**
  * Post "brut" tel que récupérer sur viedemerde.fr
@@ -8,25 +8,19 @@ namespace AppBundle\AppBundle\Entity;
  */
 class RowVdmPost {
 
-    private $_id;
-    private $_content;
-    private $_author;
-    private $_publishAt;
+    public $_id;
+    public $_content;
+    public $_author;
+    public $_publishAt;
 
     public function __construct($rowValue) {
-        $this->_id = trim($rowValue['id']);
-        $this->_content = trim($rowValue['content']);
-        $this->_author = trim($rowValue['author']);
-        $this->_publishAt = trim($rowValue['pusblish_at']);
+        
+        $this->_id = $rowValue['id'];
+        $this->_content = $rowValue['content'];
+        $this->_author = $rowValue['author'];
+        $this->_publishAt = $rowValue['publish_at'];
     }
 
-    /**
-     *
-     *
-     * @return VdmPostEntity
-     */
-    public function convertToModel() {
-        
-    }
+    
 
 }

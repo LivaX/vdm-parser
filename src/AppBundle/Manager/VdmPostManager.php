@@ -3,20 +3,30 @@
 namespace AppBundle\Manager;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\DomCrawler\Crawler;
+use AppBundle\Entity\RowVdmPost;
+use AppBundle\Entity\VdmPost;
 
 class VdmPostManager {
 
     private $container;
+    private $em;
     private $limit;
 
     /**
      * 
      * @param \AppBundle\Manager\Container $container
      */
-    public function __construct(ContainerInterface $container, $limit) {
+    public function __construct(ContainerInterface $container,EntityManager $entityManager, $limit) {
         $this->container = $container;
         $this->limit = $limit;
+        $this->em = $entityManager;
+    }
+
+    private function createPost(RowVdmPost $rowPost) {
+
+        return new VdmPost($rowPost);
     }
 
     /**
@@ -26,60 +36,49 @@ class VdmPostManager {
     private function parsePosts($html) {
         $parseResult = array();
         $crawler = new Crawler($html);
-        $crawler = $crawler->filterXPath('descendant-or-self::body/p');
-        
+        $crawler = $crawler->filterXPath("//div[@class='post article']");
+
         foreach ($crawler as $domElement) {
-            var_dump(array($domElement->nodeName => $domElement->textContent));
-            $parseResult[] = $domElement->nodeName;
+
+            $postCrawler = new Crawler($domElement);
+
+            $rowId = $postCrawler->attr("id");
+            $rowContent = $postCrawler->filterXPath("//p[1]")->text();
+
+            $rowAuthorPublishDate = $postCrawler->filterXPath("(//div[@class='right_part']/p)[last()]");
+            $rowAuthorPublishDate = explode("-", $rowAuthorPublishDate->text());
+
+            $rowDate = trim(substr($rowAuthorPublishDate[0], 2));
+            $authorArray = explode(" ", trim($rowAuthorPublishDate[count($rowAuthorPublishDate) - 1]));
+            $rowAuthor = $authorArray[count($authorArray) - 1];
+
+            $rowVdmPost = new RowVdmPost(array(
+                "id" => $rowId,
+                "content" => $rowContent,
+                "author" => $rowAuthor,
+                "publish_at" => $rowDate,
+            ));
+
+            
+            $parseResult[] = $rowVdmPost;
         }
 
         return $parseResult;
     }
 
     /**
-     * récupère les 200 derniers posts de viedemerde.fr
-     * @return array
+     * 
+     * Convertit des rowPosts en modelPost
+     * 
+     * @param mixed $rowPosts
+     * @return mixed
      */
-    public function getLatestPosts() {
-
-        $vdmHtml = $this->container->get('kernel')->locateResource('@AppBundle/Resources/vdm.html');
-        $html = <<<'HTML'
-<!DOCTYPE html>
-<html>
-    <body>
-        <p class="message">Hello World!</p>
-        <p>Hello Crawler!</p>
-    </body>
-</html>
-HTML;
-
-
-
-
-
-        $vdmDoc = new \DOMDocument();
-        @$vdmDoc->loadHTMLFile($vdmHtml);
-
-
-
-        return $this->parsePosts($vdmDoc);
-    }
-
-    /**
-     * @param array $posts
-     * @return void
-     */
-    public function savePosts($posts) {
-        
-    }
-
-    /**
-     * @param VdmPost $post
-     *
-     * @return void
-     */
-    public function savePost($post) {
-        
+    private function convertPosts($rowPosts) {
+        $posts = array();
+        foreach ($rowPosts as $rowPost) {
+            $posts[] = $this->createPost($rowPost);
+        }
+        return $posts;
     }
 
     /**
@@ -90,6 +89,36 @@ HTML;
      */
     private function convertPostToJson($posts) {
         return json_encode($posts);
+    }
+
+    /**
+     * récupère les 200 derniers posts de viedemerde.fr
+     * @return array
+     */
+    public function getLatestPosts() {
+
+        $vdmHtml = $this->container->get('kernel')->locateResource('@AppBundle/Resources/templates/vdm.html');
+        $vdmDoc = new \DOMDocument();
+        @$vdmDoc->loadHTMLFile($vdmHtml);
+
+        $rowPosts = $this->parsePosts($vdmDoc);
+        $modelPosts = $this->convertPosts($rowPosts);
+        
+        $this->savePosts($modelPosts);
+       
+        return $modelPosts;
+    }
+
+    /**
+     * @param array $posts
+     * @return void
+     */
+    public function savePosts($posts) {
+       
+        foreach($posts as $entity){
+            $this->em->persist($entity);
+        }
+        $this->em->flush();
     }
 
 }

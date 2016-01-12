@@ -1,20 +1,46 @@
 <?php
 
-namespace AppBundle\AppBundle\Entity;
+namespace AppBundle\Entity;
 
+
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="Post")
+ */
 class VdmPost {
 
-    private $id;
+    /**
+     * @ORM\Column(type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+    
+     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
     private $content;
+    
+     /**
+     * @ORM\Column(type="string", length=100, nullable=true)
+     */
     private $author;
+    
+     /**
+     * @ORM\Column(type="string", length=100, nullable=true)
+     */
     private $publishAt;
 
-    public function __construct() {
+    public function __construct(RowVdmPost $rowPost) {
 
-        $this->id = null;
-        $this->content = null;
-        $this->author = null;
-        $this->publishAt = null;
+
+        $this->id = $rowPost->_id;
+        $this->content = $rowPost->_content;
+        $this->author = $rowPost->_author;
+        //ToDo: Valider que la date est bien une date
+        $this->publishAt = $rowPost->_publishAt;
     }
 
 }
