@@ -5,6 +5,8 @@ namespace AppBundle\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class DefaultController extends Controller {
 
@@ -16,15 +18,16 @@ class DefaultController extends Controller {
 
     /**
      * 
-     * @Route("/", name="action")
+     * @Route("/", name="post_index")
      */
     public function indexAction() {
-        return new Response('<html><body>Hello !</body></html>');
+        return new Response('<html><body>Welcome !'
+                . '<a href="'.$this->generateUrl('post',array()).'">All known vdm posts</a><a href=""></a></body></html>');
     }
     
     /**
      * 
-     * @Route("/api/posts", name="posts")
+     * @Route("/api/posts", name="post")
      */
     public function showAllAction() {
 
@@ -37,14 +40,14 @@ class DefaultController extends Controller {
                     'No products found'
             );
         }
-
+ 
         $data = $this->get('serializer')->serialize($posts, 'json');
-        return new JsonResponse($data);
+        return new Response($data);
     }
 
     /**
      * 
-     * @Route("/api/posts/show", name="postsbydate")
+     * @Route("/api/posts/show", name="post_bydate")
      */
     public function showByDateAction($from = "", $to = "") {
 
@@ -84,7 +87,7 @@ class DefaultController extends Controller {
 
     /**
      *
-     * @Route("/api/posts/show", name="postbyauthor")
+     * @Route("/api/posts/show", name="post_byauthor")
      */
     public function showByAuthorAction($author = "") {
 

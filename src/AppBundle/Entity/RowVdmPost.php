@@ -19,6 +19,8 @@ class RowVdmPost {
         $this->_content = $rowValue['content'];
         $this->_author = $rowValue['author'];
         $this->_publishAt = $rowValue['publish_at'];
+        
+
     }
 
     
