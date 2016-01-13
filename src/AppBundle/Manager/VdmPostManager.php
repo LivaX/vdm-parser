@@ -18,7 +18,7 @@ class VdmPostManager {
      * 
      * @param \AppBundle\Manager\Container $container
      */
-    public function __construct(ContainerInterface $container,EntityManager $entityManager, $limit) {
+    public function __construct(ContainerInterface $container, EntityManager $entityManager, $limit) {
         $this->container = $container;
         $this->limit = $limit;
         $this->em = $entityManager;
@@ -49,10 +49,11 @@ class VdmPostManager {
             $rowAuthorPublishDate = explode("-", $rowAuthorPublishDate->text());
 
             $rowDatetime = trim(substr($rowAuthorPublishDate[0], 2));
-            $rowDate = substr($rowDatetime,0,10);
-            $rowTime = substr($rowDatetime,-5);
-            //$date = \DateTime::createFromFormat('d/m/Y H:i',$rowDate." ".$rowTime);
-            
+            $rowDate = substr($rowDatetime, 0, 10);
+            $rowTime = substr($rowDatetime, -5);
+            $date = \DateTime::createFromFormat('d/m/Y H:i', $rowDate . " " . $rowTime);
+
+
             $authorArray = explode(" ", trim($rowAuthorPublishDate[count($rowAuthorPublishDate) - 1]));
             $rowAuthor = $authorArray[1];
 
@@ -60,10 +61,10 @@ class VdmPostManager {
                 "id" => $rowId,
                 "content" => $rowContent,
                 "author" => $rowAuthor,
-                "publish_at" => $rowDate." ".$rowTime,
+                "date" => $date->format('Y-m-d H:i:s'),
             ));
 
-            
+
             $parseResult[] = $rowVdmPost;
         }
 
@@ -86,16 +87,6 @@ class VdmPostManager {
     }
 
     /**
-     * Retourne les posts au format json
-     * 
-     * @param array $posts
-     * @return void
-     */
-    private function convertPostToJson($posts) {
-        return json_encode($posts);
-    }
-
-    /**
      * récupère les 200 derniers posts de viedemerde.fr
      * @return array
      */
@@ -108,7 +99,7 @@ class VdmPostManager {
         $rowPosts = $this->parsePosts($vdmDoc);
         $modelPosts = $this->convertPosts($rowPosts);
         $this->savePosts($modelPosts);
-       
+
         return $modelPosts;
     }
 
@@ -117,8 +108,8 @@ class VdmPostManager {
      * @return void
      */
     public function savePosts($posts) {
-       
-        foreach($posts as $entity){
+
+        foreach ($posts as $entity) {
             $this->em->persist($entity);
         }
         $this->em->flush();

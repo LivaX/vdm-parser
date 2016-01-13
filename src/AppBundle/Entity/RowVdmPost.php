@@ -11,14 +11,14 @@ class RowVdmPost {
     public $_id;
     public $_content;
     public $_author;
-    public $_publishAt;
+    public $_date;
 
     public function __construct($rowValue) {
         
         $this->_id = $rowValue['id'];
         $this->_content = $rowValue['content'];
         $this->_author = $rowValue['author'];
-        $this->_publishAt = $rowValue['publish_at'];
+        $this->_date = $rowValue['date'];
         
 
     }

@@ -30,7 +30,7 @@ class VdmPost {
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private $publishAt;
+    private $date;
 
     public function __construct(RowVdmPost $rowPost) {
 
@@ -39,7 +39,7 @@ class VdmPost {
         $this->content = $rowPost->_content;
         $this->author = $rowPost->_author;
         //ToDo: Valider que la date est bien une date
-        $this->publishAt = $rowPost->_publishAt;
+        $this->date = $rowPost->_date;
     }
 
 
@@ -104,24 +104,24 @@ class VdmPost {
     /**
      * Set publishAt
      *
-     * @param string $publishAt
+     * @param \string $date
      *
      * @return VdmPost
      */
-    public function setPublishAt($publishAt)
+    public function setDate($date)
     {
-        $this->publishAt = $publishAt;
+        $this->date = $date;
 
         return $this;
     }
 
     /**
-     * Get publishAt
+     * Get date
      *
-     * @return string
+     * @return \string
      */
-    public function getPublishAt()
+    public function getDate()
     {
-        return $this->publishAt;
+        return $this->date;
     }
 }
