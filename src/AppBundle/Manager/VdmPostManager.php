@@ -61,7 +61,7 @@ class VdmPostManager {
                 "id" => $rowId,
                 "content" => $rowContent,
                 "author" => $rowAuthor,
-                "date" => $date->format('Y-m-d H:i:s'),
+                "date" => $date,
             ));
 
 

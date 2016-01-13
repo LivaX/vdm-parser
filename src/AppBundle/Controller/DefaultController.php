@@ -2,11 +2,16 @@
 
 namespace AppBundle\Controller;
 
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class DefaultController extends Controller {
 
@@ -22,79 +27,118 @@ class DefaultController extends Controller {
      */
     public function indexAction() {
         return new Response('<html><body>Welcome !'
-                . '<a href="'.$this->generateUrl('post',array()).'">All known vdm posts</a><a href=""></a></body></html>');
+                . '<a href="' . $this->generateUrl('post', array()) . '">All known vdm posts</a><a href=""></a></body></html>');
     }
-    
+
     /**
      * 
      * @Route("/api/posts", name="post")
      */
     public function showAllAction() {
 
+        $expectedParameters = array_keys($this->parameters);
+
+        $parameters = $this->getQuerystringParameters();
+
+        if (array_key_exists($expectedParameters[0], $parameters)) {
+            return $this->showByAuthorAction();
+        } elseif (array_key_exists($expectedParameters[1], $parameters) || array_key_exists($expectedParameters[2], $parameters)) {
+            return $this->showByDateAction();
+        }
+
         $posts = $this->getDoctrine()
                 ->getRepository('AppBundle:VdmPost')
                 ->findAll();
 
+
         if (count($posts) < 0) {
             throw $this->createNotFoundException(
-                    'No products found'
+                    'No posts found'
             );
         }
- 
-        $data = $this->get('serializer')->serialize($posts, 'json');
+
+        return $this->renderJsonResponse(array("posts" => $posts, "count" => count($posts)));
+    }
+
+    private function renderJsonResponse($output) {
+
+        $encoder = new JsonEncoder();
+        $normalizer = new GetSetMethodNormalizer();
+
+        $callback = function ($dateTime) {
+            return $dateTime instanceof \DateTime ? $dateTime->format("Y-m-d H:i:s") : '';
+        };
+        $normalizer->setCallbacks(array('date' => $callback));
+
+        $serializer = new Serializer(array($normalizer), array($encoder));
+
+        $data = $serializer->serialize($output, 'json');
         return new Response($data);
     }
 
     /**
      * 
-     * @Route("/api/posts/show", name="post_bydate")
+     * @Route("/api/posts/{id}", name="post_byid")
      */
-    public function showByDateAction($from = "", $to = "") {
+    public function showByIdAction($id) {
 
-        $parameters = $this->getQuerystringParameters();
+        $posts = $this->getDoctrine()
+                ->getRepository('AppBundle:VdmPost')
+                ->find($id);
+
+        return $this->renderJsonResponse(array("post" => $posts));
+    }
+
+    private function showByDateAction() {
+
+        $requestParameters = $this->getQuerystringParameters();
 
         $queryParameters = array();
         $query = $this->getDoctrine()
                 ->getRepository('AppBundle:VdmPost')
                 ->createQueryBuilder('p');
 
-        if (empty($from) === false) {
+        if (empty($requestParameters["from"]) === false) {
+            $query->where('p.date >= :from');
+
+            $from = \DateTime::createFromFormat("Y-m-d H:s:i", $requestParameters["from"]." 23:59:59");
             $queryParameters = array_merge(array('from' => $from));
-        }
 
-        if (empty($to) === false) {
-            $queryParameters = array_merge(array('to' => $to));
+            if (empty($requestParameters["to"]) === false) {
+                $query->andWhere('p.date <= :to');
+                $to = \DateTime::createFromFormat("Y-m-d H:s:i", $requestParameters["to"]." 23:59:59");
+                $queryParameters = array_merge($queryParameters, array('to' => $to));
+            }
+        } else {
+            if (empty($requestParameters["to"]) === false) {
+                $query->where('p.date <= :to');
+                $to = \DateTime::createFromFormat("Y-m-d H:s:i", $requestParameters["to"]." 23:59:59");
+                $queryParameters = array_merge($queryParameters, array('to' => $to));
+            }
         }
-
 
         $posts = $query
-                ->where('p.publishAt > :from')
-                ->andWhere('p.publishAt', ':to')
-                ->orderBy('p.publishAt', 'DESC')
+                ->orderBy('p.date', 'DESC')
                 ->setParameters($queryParameters)
                 ->getQuery()
                 ->getResult();
 
         if (count($posts) < 0) {
             throw $this->createNotFoundException(
-                    'No products found'
+                    'No posts found'
             );
         }
 
-        $data = $this->get('serializer')->serialize($posts, 'json');
-        return new JsonResponse($data);
+        return $this->renderJsonResponse(array("posts" => $posts, "count" => count($posts)));
     }
 
-    /**
-     *
-     * @Route("/api/posts/show", name="post_byauthor")
-     */
-    public function showByAuthorAction($author = "") {
+    private function showByAuthorAction() {
+
+        $requestParameters = $this->getQuerystringParameters();
 
         $queryParameters = array();
-        if (empty($author) === false) {
-            $queryParameters = array_merge(array('author' => $author));
-        }
+        $queryParameters = array_merge(array('author' => $requestParameters["author"]));
+
 
         $query = $this->getDoctrine()
                 ->getRepository('AppBundle:VdmPost')
@@ -103,19 +147,18 @@ class DefaultController extends Controller {
 
         $posts = $query
                 ->where('p.author > :author')
-                ->orderBy('p.publishAt', 'DESC')
+                ->orderBy('p.date', 'DESC')
                 ->setParameters($queryParameters)
                 ->getQuery()
                 ->getResult();
 
         if (count($posts) < 0) {
             throw $this->createNotFoundException(
-                    'No products found'
+                    'No posts found'
             );
         }
 
-        $data = $this->get('serializer')->serialize($posts, 'json');
-        return new JsonResponse($data);
+        return $this->renderJsonResponse(array("posts" => $posts, "count" => count($posts)));
     }
 
     /**

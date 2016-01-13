@@ -28,7 +28,7 @@ class VdmPost {
     private $author;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $date;
 
@@ -104,7 +104,7 @@ class VdmPost {
     /**
      * Set publishAt
      *
-     * @param \string $date
+     * @param \DateTime $date
      *
      * @return VdmPost
      */
@@ -118,7 +118,7 @@ class VdmPost {
     /**
      * Get date
      *
-     * @return \string
+     * @return \DateTime
      */
     public function getDate()
     {
