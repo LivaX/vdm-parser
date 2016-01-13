@@ -45,7 +45,7 @@ class VdmPostManager {
             $rowId = $postCrawler->attr("id");
             $rowContent = $postCrawler->filterXPath("//p[1]")->text();
 
-            $rowAuthorPublishDate = $postCrawler->filterXPath("(//div[@class='right_part']/p)[last()]");
+            $rowAuthorPublishDate = $postCrawler->filterXPath("(//div[@class='right_part']/p)[2]");
             $rowAuthorPublishDate = explode("-", $rowAuthorPublishDate->text());
 
             $rowDatetime = trim(substr($rowAuthorPublishDate[0], 2));
@@ -54,7 +54,7 @@ class VdmPostManager {
             //$date = \DateTime::createFromFormat('d/m/Y H:i',$rowDate." ".$rowTime);
             
             $authorArray = explode(" ", trim($rowAuthorPublishDate[count($rowAuthorPublishDate) - 1]));
-            $rowAuthor = $authorArray[count($authorArray) - 1];
+            $rowAuthor = $authorArray[1];
 
             $rowVdmPost = new RowVdmPost(array(
                 "id" => $rowId,
