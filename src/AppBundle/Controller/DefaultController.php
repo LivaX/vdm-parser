@@ -26,8 +26,12 @@ class DefaultController extends Controller {
      * @Route("/", name="post_index")
      */
     public function indexAction() {
-        return new Response('<html><body>Welcome !'
-                . '<a href="' . $this->generateUrl('post', array()) . '">All known vdm posts</a><a href=""></a></body></html>');
+        return new Response('<html><body>Welcome !<br/>'
+                . '<a href="' . $this->generateUrl('post', array()) . '">Tous les posts</a><a href=""></a><br/>'
+                . '<a href="' . $this->generateUrl('post', array("from"=>"2016-01-01","to"=>"2016-01-15")) . '">Par date</a><br/>'
+                . '<a href="' . $this->generateUrl('post', array("author"=>"Anonyme")) . '">par Auteur</a><br/>'
+                . '<a href="' . $this->generateUrl('post_byid', array("id"=>"1")) . '">par id</a><br/>'
+                . '</body></html>');
     }
 
     /**
@@ -146,7 +150,7 @@ class DefaultController extends Controller {
 
 
         $posts = $query
-                ->where('p.author > :author')
+                ->where('p.author = :author')
                 ->orderBy('p.date', 'DESC')
                 ->setParameters($queryParameters)
                 ->getQuery()
