@@ -26,9 +26,7 @@ class ParseCommand extends ContainerAwareCommand
         //on appelle notre service
         $vdmResult = $this->getContainer()->get('vdm.parser')->getLatestPosts();
         
-        // $output->writeln(var_dump($vdmResult));
-        //on écrit le résultat
-        //$output->writeln("post count".var_dump($vdmResult));
+        $output->writeln("command processed");
        
     }
 }
